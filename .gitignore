@@ -1,3 +1,13 @@
+# My textures , sounds etc.
+OtherContent/*
+
+
+
+
+
+# ----- under this was the default Unreal Engine .gitignore created by GitHub
+
+
 # Visual Studio 2015 user specific files
 .vs/
 
