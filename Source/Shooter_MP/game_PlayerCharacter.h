@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
 #include "game_PlayerCharacter.generated.h"
 
 UCLASS()
@@ -25,5 +27,15 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
+	UCapsuleComponent* capsuleCollider;
+	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
+	UCameraComponent* camera;
+
+
+
+private:
+
 
 };

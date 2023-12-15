@@ -9,6 +9,15 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//components
+	capsuleCollider = FindComponentByClass<UCapsuleComponent>();
+	if (capsuleCollider != nullptr)
+	{
+		SetRootComponent(capsuleCollider);
+		camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+		camera->SetupAttachment(capsuleCollider);
+	}
+	
 }
 
 // Called when the game starts or when spawned

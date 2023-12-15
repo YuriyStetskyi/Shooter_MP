@@ -6,7 +6,9 @@
 Agame_GameMode::Agame_GameMode()
 	:maxPlayers(4)
 {
-
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+	PlayerControllerClass = Agame_PlayerController::StaticClass();
 }
 
 void Agame_GameMode::BeginPlay()
@@ -56,6 +58,11 @@ void Agame_GameMode::SetupMultiplayer(APlayerController* NewPlayer)
 	default:
 		break;
 	}
+}
+
+void Agame_GameMode::SetupSingleplayer(APlayerController* NewPlayer)
+{
+
 }
 
 //void Agame_GameMode::FindPlayerCharacters()

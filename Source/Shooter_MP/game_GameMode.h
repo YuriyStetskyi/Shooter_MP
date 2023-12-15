@@ -7,6 +7,7 @@
 #include "utility_General.h"
 #include "Kismet/GameplayStatics.h"
 #include "game_PlayerCharacter.h"
+#include "game_PlayerController.h"
 #include "game_GameMode.generated.h"
 
 /**
@@ -30,9 +31,9 @@ public:
 	void SetupMultiplayer(APlayerController* NewPlayer);
 	void SetupSingleplayer(APlayerController* NewPlayer);
 
+
+	//login
 	TArray<AActor*> playerCharacters;
-
-
 	int maxPlayers;
 	int currentPlayers;
 
