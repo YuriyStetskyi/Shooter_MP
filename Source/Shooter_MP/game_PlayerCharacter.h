@@ -28,12 +28,17 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//components
 	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
 	UCapsuleComponent* capsuleCollider;
 	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
 	UCameraComponent* camera;
 
-
+	//states
+	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
+	bool isGrounded;
+	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
+	bool isSprinting;
 
 private:
 

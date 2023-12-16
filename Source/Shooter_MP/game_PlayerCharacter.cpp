@@ -5,6 +5,8 @@
 
 // Sets default values
 Agame_PlayerCharacter::Agame_PlayerCharacter()
+	:isGrounded(false),
+	isSprinting(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -24,7 +26,6 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 void Agame_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

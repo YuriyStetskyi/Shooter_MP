@@ -8,23 +8,29 @@ Agame_PlayerController::Agame_PlayerController()
 	:forwardInput(0),
 	rightInput(0),
 	inputThreshold(0.2f),
-	maxSpeed(800.f),
-	acceleration(15.f)
+	acceleration(15.f),
+	walkingSpeed(500.f),
+	sprintingSpeed(800.f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	maxSpeed = walkingSpeed;
 }
 
 void Agame_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	playerCharacter = GetPawn();
+	playerPawn = GetPawn();
+	playerCharacter = (Agame_PlayerCharacter*)playerPawn;
 }
 
 void Agame_PlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	MoveOnInput(playerCharacter, forwardInput, rightInput, DeltaTime);
+	UpdateStates(playerPawn);
+	StoreMoveDataWhileGrounded();
+	
 }
 
 void Agame_PlayerController::SetupInputComponent()
@@ -34,23 +40,41 @@ void Agame_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &Agame_PlayerController::MoveRight);
 	InputComponent->BindAxis("LookUp", this, &Agame_PlayerController::LookUp);
 	InputComponent->BindAxis("LookRight", this, &Agame_PlayerController::LookRight);
+
+	InputComponent->BindAction("Jump", IE_Pressed, this, &Agame_PlayerController::TryJumping);
+
+	InputComponent->BindAction("Sprint", IE_Pressed, this, &Agame_PlayerController::UpdateSprinting);
+	//InputComponent->BindAction("Sprint", IE_Released, this, &Agame_PlayerController::UpdateSprinting);
 }
 
-void Agame_PlayerController::MoveOnInput(AActor* pawn, float fInput, float rInput, float DeltaTime)
+void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float fInput, float rInput, float DeltaTime)
 {
-	if (pawn && (fInput || rInput))
+	if (character)
 	{
-		Agame_PlayerCharacter* playerPawn = (Agame_PlayerCharacter*)pawn;
-		movementDirection = playerPawn->camera->GetForwardVector() * fInput
-			+ playerPawn->camera->GetRightVector() * rInput;
+		if (character->isGrounded) 
+		{
+			movementDirection = character->camera->GetForwardVector() * fInput
+				+ character->camera->GetRightVector() * rInput;
+		}
+		else
+		{
+			//need stored vector and velocity before jumping ????????????????????????????????????????
+			
+			movementDirection = character->camera->GetForwardVector() * fInput
+				+ character->camera->GetRightVector() * rInput;
+				
+		}
+
+
+
 		movementDirection.Z = 0;
 		movementDirection.Normalize();
 
 		FVector targetVelocity = movementDirection * maxSpeed;
 		currentVelocity = FMath::Lerp(currentVelocity, targetVelocity, acceleration * DeltaTime);
 
-		FVector newLocation = pawn->GetActorLocation() + (currentVelocity * DeltaTime);
-		pawn->SetActorLocation(newLocation, true);
+		FVector newLocation = character->GetActorLocation() + (currentVelocity * DeltaTime);
+		character->SetActorLocation(newLocation, true);
 	}
 	
 }
@@ -85,11 +109,30 @@ void Agame_PlayerController::MoveRight(float value)
 	}
 }
 
+void Agame_PlayerController::TryJumping()
+{
+	playerCharacter->Jump();
+}
+
+void Agame_PlayerController::UpdateSprinting()
+{
+	if (playerCharacter->isSprinting || forwardInput < inputThreshold)
+	{
+		playerCharacter->isSprinting = false;
+		maxSpeed = walkingSpeed;
+	}
+	else
+	{
+		playerCharacter->isSprinting = true;
+		maxSpeed = sprintingSpeed;
+	}
+}
+
 void Agame_PlayerController::LookUp(float value)
 {
 	if (value)
 	{
-		UCameraComponent* cam = ((Agame_PlayerCharacter*)playerCharacter)->camera;
+		UCameraComponent* cam = playerCharacter->camera;
 		float temp = cam->GetRelativeRotation().Pitch + value;
 		if (temp <= 90 && temp >= -90)
 		{
@@ -103,9 +146,35 @@ void Agame_PlayerController::LookRight(float value)
 {
 	if (value)
 	{
-		UCameraComponent* cam = ((Agame_PlayerCharacter*)playerCharacter)->camera;
+		UCameraComponent* cam = playerCharacter->camera;
 		cam->AddWorldRotation(FRotator(0, value, 0));
 		
+	}
+}
+
+void Agame_PlayerController::UpdateStates(APawn* player)
+{
+	//update if player is grounded
+	((Agame_PlayerCharacter*)player)->isGrounded = ((Agame_PlayerCharacter*)player)->GetCharacterMovement()->IsMovingOnGround();
+
+	//sprinting update happens on input
+	
+	
+	//stop sprinting if stop moving
+	if (forwardInput < inputThreshold)
+	{
+		UpdateSprinting();
+	}
+
+
+}
+
+void Agame_PlayerController::StoreMoveDataWhileGrounded()
+{
+	if (playerCharacter->isGrounded)
+	{
+		stored_movementDirection = movementDirection;
+		stored_currentVelocity = currentVelocity;
 	}
 }
 
