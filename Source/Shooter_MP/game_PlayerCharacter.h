@@ -40,7 +40,14 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
 	bool isSprinting;
 
+	//camera
+	float fov_default;
+	float fov_sprint_difference;
+
+
 private:
+
+	void ChangeFovWhenSprinting();
 
 
 };

@@ -6,7 +6,9 @@
 // Sets default values
 Agame_PlayerCharacter::Agame_PlayerCharacter()
 	:isGrounded(false),
-	isSprinting(false)
+	isSprinting(false),
+	fov_default(90.0f),
+	fov_sprint_difference(20.0f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,6 +20,7 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 		SetRootComponent(capsuleCollider);
 		camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 		camera->SetupAttachment(capsuleCollider);
+		camera->FieldOfView = fov_default;
 	}
 	
 }
@@ -32,7 +35,7 @@ void Agame_PlayerCharacter::BeginPlay()
 void Agame_PlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	ChangeFovWhenSprinting();
 }
 
 // Called to bind functionality to input
@@ -40,5 +43,18 @@ void Agame_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void Agame_PlayerCharacter::ChangeFovWhenSprinting()
+{
+	float easingSpeed = 0.1;
+	if (isSprinting)
+	{
+		camera->FieldOfView = FMath::Lerp(camera->FieldOfView, fov_default + fov_sprint_difference, easingSpeed);
+	}
+	else
+	{
+		camera->FieldOfView = FMath::Lerp(camera->FieldOfView, fov_default, easingSpeed);
+	}
 }
 

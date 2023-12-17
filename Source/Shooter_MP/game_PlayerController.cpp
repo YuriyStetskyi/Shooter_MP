@@ -51,22 +51,12 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 {
 	if (character)
 	{
-		if (character->isGrounded) 
-		{
-			movementDirection = character->camera->GetForwardVector() * fInput
-				+ character->camera->GetRightVector() * rInput;
-		}
-		else
-		{
-			//need stored vector and velocity before jumping ????????????????????????????????????????
-			
-			movementDirection = character->camera->GetForwardVector() * fInput
-				+ character->camera->GetRightVector() * rInput;
-				
-		}
+		//need stored vector and velocity before jumping ????????????????????????????????????????
+		//change air movement when not grounded in the future HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-
+		movementDirection = character->camera->GetForwardVector() * fInput
+			+ character->camera->GetRightVector() * rInput;
 		movementDirection.Z = 0;
 		movementDirection.Normalize();
 
