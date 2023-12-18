@@ -7,6 +7,7 @@
 #include "game_playerCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "testing_General.h"
 #include "game_PlayerController.generated.h"
 
 /**
@@ -45,7 +46,6 @@ public:
 	void UpdateStates(APawn* player);
 	void StoreMoveDataWhileGrounded();
 
-
 private:
 
 	//movement
@@ -63,4 +63,8 @@ private:
 	float walkingSpeed;
 	float sprintingSpeed;
 
+
+private:
+	//testing
+	void Enable_Framerate_Changer();
 };

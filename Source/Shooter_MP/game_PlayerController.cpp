@@ -14,6 +14,7 @@ Agame_PlayerController::Agame_PlayerController()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	GEngine->bUseFixedFrameRate = false; //in case you changed FPS during testing
 	maxSpeed = walkingSpeed;
 }
 
@@ -31,6 +32,9 @@ void Agame_PlayerController::Tick(float DeltaTime)
 	UpdateStates(playerPawn);
 	StoreMoveDataWhileGrounded();
 	
+	
+	//testing
+	Enable_Framerate_Changer();
 }
 
 void Agame_PlayerController::SetupInputComponent()
@@ -44,7 +48,6 @@ void Agame_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Pressed, this, &Agame_PlayerController::TryJumping);
 
 	InputComponent->BindAction("Sprint", IE_Pressed, this, &Agame_PlayerController::UpdateSprinting);
-	//InputComponent->BindAction("Sprint", IE_Released, this, &Agame_PlayerController::UpdateSprinting);
 }
 
 void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float fInput, float rInput, float DeltaTime)
@@ -167,5 +170,45 @@ void Agame_PlayerController::StoreMoveDataWhileGrounded()
 		stored_currentVelocity = currentVelocity;
 	}
 }
+
+void Agame_PlayerController::Enable_Framerate_Changer()
+{
+	if (IsInputKeyDown(EKeys::I) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 15)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("FPS CHANGED TO 15"), true, FVector2D(2,2));
+		GEngine->FixedFrameRate = 15.0;
+		GEngine->bUseFixedFrameRate = true;
+	}
+
+	if (IsInputKeyDown(EKeys::O) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 30)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, TEXT("FPS CHANGED TO 30"), true, FVector2D(2, 2));
+		GEngine->FixedFrameRate = 30.0;
+		GEngine->bUseFixedFrameRate = true;
+	}
+
+	if (IsInputKeyDown(EKeys::P) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 60)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Orange, TEXT("FPS CHANGED TO 60"), true, FVector2D(2, 2));
+		GEngine->FixedFrameRate = 60.0;
+		GEngine->bUseFixedFrameRate = true;
+	}
+
+	if (IsInputKeyDown(EKeys::K) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 144)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("FPS CHANGED TO 144"), true, FVector2D(2, 2));
+		GEngine->FixedFrameRate = 144.0;
+		GEngine->bUseFixedFrameRate = true;
+	}
+
+	if (IsInputKeyDown(EKeys::L) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 999)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("FPS UNCAPPED"), true, FVector2D(2, 2));
+		GEngine->FixedFrameRate = 999.0;
+		GEngine->bUseFixedFrameRate = false;
+	}
+}
+
+
 
 
