@@ -33,6 +33,8 @@ public:
 	UCapsuleComponent* capsuleCollider;
 	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
 	UCameraComponent* camera;
+	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
+	UCapsuleComponent* capsuleOverlapDetector;
 
 	//states
 	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
@@ -43,6 +45,20 @@ public:
 	//camera
 	float fov_default;
 	float fov_sprint_difference;
+
+	//collision
+	FVector overlapNormal;
+	bool isOverlappingStuff;
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+	void Detector_OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	bool isHittingStuff;
 
 
 private:

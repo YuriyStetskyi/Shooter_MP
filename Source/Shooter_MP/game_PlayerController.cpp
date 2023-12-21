@@ -14,15 +14,16 @@ Agame_PlayerController::Agame_PlayerController()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	GEngine->bUseFixedFrameRate = false; //in case you changed FPS during testing
 	maxSpeed = walkingSpeed;
 }
 
 void Agame_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	GEngine->bUseFixedFrameRate = false; //in case you changed FPS during testing
 	playerPawn = GetPawn();
 	playerCharacter = (Agame_PlayerCharacter*)playerPawn;
+	//FSlateApplication::Get().OnFocusChanging().AddUObject(this, &Agame_PlayerController::OnFocusChanged);
 }
 
 void Agame_PlayerController::Tick(float DeltaTime)
@@ -67,6 +68,27 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 		currentVelocity = FMath::Lerp(currentVelocity, targetVelocity, acceleration * DeltaTime);
 
 		FVector newLocation = character->GetActorLocation() + (currentVelocity * DeltaTime);
+
+		if (character->isHittingStuff && FVector::DotProduct(movementDirection, character->overlapNormal) <= 0)
+		{
+			FVector slideVelocity = character->overlapNormal * currentVelocity;
+
+			if (character->overlapNormal.X > 0.5 || character->overlapNormal.Y > 0.5) //this is bad but works for now
+			{
+				newLocation -= slideVelocity * DeltaTime;
+			}
+			else
+			{
+				newLocation += slideVelocity * DeltaTime;
+			}		
+			//FVector WallSlideVelocity = currentVelocity - FVector::DotProduct(currentVelocity, character->overlapNormal) * character->overlapNormal;
+
+			//newLocation += WallSlideVelocity * DeltaTime;
+		}
+		else
+		{
+			//character->overlapNormal = FVector::ZeroVector;
+		}
 		character->SetActorLocation(newLocation, true);
 	}
 	
@@ -121,6 +143,14 @@ void Agame_PlayerController::UpdateSprinting()
 	}
 }
 
+void Agame_PlayerController::OnFocusChanged(bool newFocusState)
+{
+	forwardInput = 0;
+	rightInput = 0;
+	movementDirection = FVector::ZeroVector;
+	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Emerald, TEXT("ALT TABBED"), true, FVector2D(1.5, 1.5));
+}
+
 void Agame_PlayerController::LookUp(float value)
 {
 	if (value)
@@ -154,7 +184,7 @@ void Agame_PlayerController::UpdateStates(APawn* player)
 	
 	
 	//stop sprinting if stop moving
-	if (forwardInput < inputThreshold)
+	if (forwardInput < inputThreshold || (FMath::Abs(currentVelocity.X) < inputThreshold && FMath::Abs(currentVelocity.Y) < inputThreshold && FMath::Abs(currentVelocity.Z) < inputThreshold))
 	{
 		UpdateSprinting();
 	}

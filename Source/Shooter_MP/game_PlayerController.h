@@ -8,6 +8,9 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "testing_General.h"
+#include "Slate/SceneViewport.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/SViewport.h"
 #include "game_PlayerController.generated.h"
 
 /**
@@ -39,6 +42,9 @@ public:
 	void TryJumping();
 	void UpdateSprinting();
 
+	//window focus (fixing alt tab bug)
+	void OnFocusChanged(bool newFocusState);
+
 	//camera
 	void LookUp(float value);
 	void LookRight(float value);
@@ -62,7 +68,7 @@ private:
 
 	float walkingSpeed;
 	float sprintingSpeed;
-
+	
 
 private:
 	//testing
