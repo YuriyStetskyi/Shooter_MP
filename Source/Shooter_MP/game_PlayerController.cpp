@@ -91,6 +91,10 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 		}
 		character->SetActorLocation(newLocation, true);
 	}
+
+
+	
+	
 	
 }
 
@@ -172,6 +176,8 @@ void Agame_PlayerController::LookRight(float value)
 		UCameraComponent* cam = playerCharacter->camera;
 		cam->AddWorldRotation(FRotator(0, value, 0));
 		
+		//move body as well. -90 because of relativity of rotation, its kinda crutch
+		playerCharacter->bodyMesh->SetWorldRotation(FRotator(0, cam->GetRelativeRotation().Yaw - 90, 0));
 	}
 }
 

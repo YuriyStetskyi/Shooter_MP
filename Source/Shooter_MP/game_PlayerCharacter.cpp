@@ -24,9 +24,9 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 		capsuleOverlapDetector = CreateDefaultSubobject<UCapsuleComponent>(TEXT("OverlapDetector"));
 		capsuleOverlapDetector->SetupAttachment(capsuleCollider);
 		capsuleOverlapDetector->SetWorldLocation(FVector::ZeroVector);
+		bodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+		bodyMesh->SetupAttachment(capsuleCollider);
 	}
-
-	
 }
 
 // Called when the game starts or when spawned

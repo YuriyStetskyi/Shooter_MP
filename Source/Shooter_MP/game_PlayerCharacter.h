@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+//#include "Containers/Array.h"
 #include "game_PlayerCharacter.generated.h"
 
 UCLASS()
@@ -35,6 +36,8 @@ public:
 	UCameraComponent* camera;
 	UPROPERTY(EdiTAnywhere, Category = "cpp_MyStuff")
 	UCapsuleComponent* capsuleOverlapDetector;
+	UPROPERTY(EditAnywhere, Category = "cpp_MyStuff")
+	UStaticMeshComponent* bodyMesh;
 
 	//states
 	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
