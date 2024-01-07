@@ -68,7 +68,12 @@ private:
 
 	float walkingSpeed;
 	float sprintingSpeed;
-	
+
+	//better jump
+	float timeOfJumpPress;
+	float timeOfLanding;
+	float timeOfJumpBuffer;
+	void ImproveJump();
 
 private:
 	//testing

@@ -32,7 +32,7 @@ void Agame_PlayerController::Tick(float DeltaTime)
 	MoveOnInput(playerCharacter, forwardInput, rightInput, DeltaTime);
 	UpdateStates(playerPawn);
 	StoreMoveDataWhileGrounded();
-	
+	ImproveJump();
 	
 	//testing
 	Enable_Framerate_Changer();
@@ -55,10 +55,6 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 {
 	if (character)
 	{
-		//need stored vector and velocity before jumping ????????????????????????????????????????
-		//change air movement when not grounded in the future HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 		movementDirection = character->camera->GetForwardVector() * fInput
 			+ character->camera->GetRightVector() * rInput;
 		movementDirection.Z = 0;
@@ -67,34 +63,19 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 		FVector targetVelocity = movementDirection * maxSpeed;
 		currentVelocity = FMath::Lerp(currentVelocity, targetVelocity, acceleration * DeltaTime);
 
-		FVector newLocation = character->GetActorLocation() + (currentVelocity * DeltaTime);
-
-		if (character->isHittingStuff && FVector::DotProduct(movementDirection, character->overlapNormal) <= 0)
+		FVector newLocation; 
+		if (character->isHittingStuff && FVector::DotProduct(movementDirection, character->hitNormal) <= 0)
 		{
-			FVector slideVelocity = character->overlapNormal * currentVelocity;
-
-			if (character->overlapNormal.X > 0.5 || character->overlapNormal.Y > 0.5) //this is bad but works for now
-			{
-				newLocation -= slideVelocity * DeltaTime;
-			}
-			else
-			{
-				newLocation += slideVelocity * DeltaTime;
-			}		
-			//FVector WallSlideVelocity = currentVelocity - FVector::DotProduct(currentVelocity, character->overlapNormal) * character->overlapNormal;
-
-			//newLocation += WallSlideVelocity * DeltaTime;
+			FVector slideVelocity = currentVelocity - (character->hitNormal * FVector::DotProduct(currentVelocity, character->hitNormal));
+			newLocation = character->GetActorLocation() + (slideVelocity * DeltaTime);
 		}
 		else
 		{
-			//character->overlapNormal = FVector::ZeroVector;
+			newLocation = character->GetActorLocation() + (currentVelocity * DeltaTime);
 		}
+
 		character->SetActorLocation(newLocation, true);
 	}
-
-
-	
-	
 	
 }
 
@@ -131,6 +112,7 @@ void Agame_PlayerController::MoveRight(float value)
 void Agame_PlayerController::TryJumping()
 {
 	playerCharacter->Jump();
+	timeOfJumpPress = GetWorld()->GetTimeSeconds();
 }
 
 void Agame_PlayerController::UpdateSprinting()
@@ -204,6 +186,23 @@ void Agame_PlayerController::StoreMoveDataWhileGrounded()
 	{
 		stored_movementDirection = movementDirection;
 		stored_currentVelocity = currentVelocity;
+	}
+}
+
+void Agame_PlayerController::ImproveJump()
+{
+	if (playerCharacter->isGrounded)
+	{
+		timeOfLanding = GetWorld()->GetTimeSeconds();
+	}
+	else
+	{
+		timeOfLanding = 0.0f;
+	}
+
+	if (timeOfLanding - timeOfJumpPress < 0.15f && timeOfLanding - timeOfJumpPress > 0 && timeOfJumpPress != 0)
+	{
+		TryJumping();
 	}
 }
 
