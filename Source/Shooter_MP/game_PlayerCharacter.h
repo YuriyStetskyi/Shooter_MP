@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "utility_General.h"
 #include "Kismet/GameplayStatics.h"
 //#include "Containers/Array.h"
 #include "game_PlayerCharacter.generated.h"
@@ -61,13 +62,10 @@ public:
 	UFUNCTION()
 	void Detector_OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	bool isHittingStuff;
-
 	float current_HitTime;
 	float lastHit_Time;
 	FVector currentHit_ImpactNormal;
 	FVector lastHit_ImpactNormal;
-	UPROPERTY(VisibleAnywhere, Category = "cpp_States")
-	bool isCornerStuck;
 
 private:
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Math/UnrealMathUtility.h" 
 
 /**
  * 
@@ -13,13 +14,6 @@ public:
 	testing_General();
 	~testing_General();
 
-	void add_Framerate_Changer();
-
-	void Set_FPS_15();
-	void Set_FPS_30();
-	void Set_FPS_60();
-	void Set_FPS_144();
-	void Set_FPS_uncap();
-
+	
 private:
 };

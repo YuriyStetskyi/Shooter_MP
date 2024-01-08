@@ -14,4 +14,5 @@ public:
 	~utility_General();
 
 	static AActor* FindActorByTag(TArray<AActor*>& FoundActors, const FName& tag);
+	static float Calculate_Angle(FVector& vector_1, FVector& vector_2);
 };
