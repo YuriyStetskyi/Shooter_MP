@@ -3,6 +3,9 @@
 
 #include "utility_General.h"
 
+
+
+
 utility_General::utility_General()
 {
 }
@@ -34,3 +37,5 @@ float utility_General::Calculate_Angle(FVector& vector_1, FVector& vector_2)
 
 	return Angle_Degrees;
 }
+
+

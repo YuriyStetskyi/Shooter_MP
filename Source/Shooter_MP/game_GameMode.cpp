@@ -23,7 +23,9 @@ void Agame_GameMode::Tick(float DeltaTime)
 void Agame_GameMode::PostLogin(APlayerController* NewPlayer)
 {
 	currentPlayers++;
+
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), Agame_PlayerCharacter::StaticClass(), playerCharacters);
+
 	SetupMultiplayer(NewPlayer);
 }
 
@@ -41,7 +43,7 @@ void Agame_GameMode::SetupMultiplayer(APlayerController* NewPlayer)
 	{
 		AActor* toPosess = utility_General::FindActorByTag(playerCharacters, "Player2");
 		NewPlayer->Possess((APawn*)toPosess);
-		break;
+ 		break;
 	}
 	case(3):
 	{

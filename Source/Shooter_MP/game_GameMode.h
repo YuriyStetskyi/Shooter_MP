@@ -34,6 +34,10 @@ public:
 
 	//login
 	TArray<AActor*> playerCharacters;
+	AActor* player_1;
+	AActor* player_2;
+	AActor* player_3;
+	AActor* player_4;
 	int maxPlayers;
 	int currentPlayers;
 

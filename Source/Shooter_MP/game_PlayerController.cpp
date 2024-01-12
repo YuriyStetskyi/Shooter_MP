@@ -117,16 +117,20 @@ void Agame_PlayerController::TryJumping()
 
 void Agame_PlayerController::UpdateSprinting()
 {
-	if (playerCharacter->isSprinting || forwardInput < inputThreshold)
+	if (playerCharacter)
 	{
-		playerCharacter->isSprinting = false;
-		maxSpeed = walkingSpeed;
+		if (playerCharacter->isSprinting || forwardInput < inputThreshold)
+		{
+			playerCharacter->isSprinting = false;
+			maxSpeed = walkingSpeed;
+		}
+		else
+		{
+			playerCharacter->isSprinting = true;
+			maxSpeed = sprintingSpeed;
+		}
 	}
-	else
-	{
-		playerCharacter->isSprinting = true;
-		maxSpeed = sprintingSpeed;
-	}
+
 }
 
 void Agame_PlayerController::OnFocusChanged(bool newFocusState)
@@ -166,7 +170,8 @@ void Agame_PlayerController::LookRight(float value)
 void Agame_PlayerController::UpdateStates(APawn* player)
 {
 	//update if player is grounded
-	((Agame_PlayerCharacter*)player)->isGrounded = ((Agame_PlayerCharacter*)player)->GetCharacterMovement()->IsMovingOnGround();
+	if(player)
+		((Agame_PlayerCharacter*)player)->isGrounded = ((Agame_PlayerCharacter*)player)->GetCharacterMovement()->IsMovingOnGround();
 
 	//sprinting update happens on input
 	
@@ -182,27 +187,33 @@ void Agame_PlayerController::UpdateStates(APawn* player)
 
 void Agame_PlayerController::StoreMoveDataWhileGrounded()
 {
-	if (playerCharacter->isGrounded)
+	if (playerCharacter)
 	{
-		stored_movementDirection = movementDirection;
-		stored_currentVelocity = currentVelocity;
+		if (playerCharacter->isGrounded)
+		{
+			stored_movementDirection = movementDirection;
+			stored_currentVelocity = currentVelocity;
+		}
 	}
 }
 
 void Agame_PlayerController::ImproveJump()
 {
-	if (playerCharacter->isGrounded)
+	if (playerCharacter)
 	{
-		timeOfLanding = GetWorld()->GetTimeSeconds();
-	}
-	else
-	{
-		timeOfLanding = 0.0f;
-	}
+		if (playerCharacter->isGrounded)
+		{
+			timeOfLanding = GetWorld()->GetTimeSeconds();
+		}
+		else
+		{
+			timeOfLanding = 0.0f;
+		}
 
-	if (timeOfLanding - timeOfJumpPress < 0.15f && timeOfLanding - timeOfJumpPress > 0 && timeOfJumpPress != 0)
-	{
-		TryJumping();
+		if (timeOfLanding - timeOfJumpPress < 0.15f && timeOfLanding - timeOfJumpPress > 0 && timeOfJumpPress != 0)
+		{
+			TryJumping();
+		}
 	}
 }
 

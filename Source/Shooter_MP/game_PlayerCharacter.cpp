@@ -62,9 +62,10 @@ void Agame_PlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* Oth
 	current_HitTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 	lastHit_ImpactNormal = currentHit_ImpactNormal;
 	currentHit_ImpactNormal = Hit.ImpactNormal;
+	float timeBetweenFrames = GetWorld()->DeltaTimeSeconds;
 
 	//this is bad corner sticking fix for now, but fix it later or lose your mind trying to fix this for past 15 hours
-	if (current_HitTime - lastHit_Time < 0.1 && utility_General::Calculate_Angle(currentHit_ImpactNormal, lastHit_ImpactNormal) > 30)
+	if (current_HitTime - lastHit_Time < timeBetweenFrames * 10 && utility_General::Calculate_Angle(currentHit_ImpactNormal, lastHit_ImpactNormal) > 30)
 	{	
 		hitNormal = (currentHit_ImpactNormal + lastHit_ImpactNormal) * 0.75;
 	}
@@ -76,6 +77,7 @@ void Agame_PlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* Oth
 
 void Agame_PlayerCharacter::Detector_OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	//inactive right now - look OnComponentBeginOverlap.AddDynamic
 	isHittingStuff = true;
 	
 	//debugging
