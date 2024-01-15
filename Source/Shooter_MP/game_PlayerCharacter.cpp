@@ -29,6 +29,9 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 		bodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 		bodyMesh->SetupAttachment(capsuleCollider);
 	}
+	/*SetReplicates(true);
+	SetReplicateMovement(true);*/
+	NetUpdateFrequency = 5000.0f;
 }
 
 // Called when the game starts or when spawned

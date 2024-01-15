@@ -11,6 +11,7 @@
 #include "Slate/SceneViewport.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SViewport.h"
+#include "Net/UnrealNetwork.h"
 #include "game_PlayerController.generated.h"
 
 /**
@@ -37,6 +38,23 @@ public:
 	APawn* playerPawn;
 	Agame_PlayerCharacter* playerCharacter;
 	void MoveOnInput(Agame_PlayerCharacter* character, float fInput, float rInput, float DeltaTime);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_MoveOnInput(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime);
+	void Multicast_MoveOnInput_Implementation(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime);
+	UFUNCTION(Server, Reliable)
+	void Server_MoveOnInput(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime);
+	void Server_MoveOnInput_Implementation(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime);
+
+	void RotateCameraOnInput(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_RotateCameraOnInput(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime);
+	void Multicast_RotateCameraOnInput_Implementation(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime);
+	UFUNCTION(Server, Reliable)
+	void Server_RotateCameraOnInput(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime);
+	void Server_RotateCameraOnInput_Implementation(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime);
+
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+	
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void TryJumping();
@@ -50,14 +68,22 @@ public:
 	void LookRight(float value);
 
 	void UpdateStates(APawn* player);
-	void StoreMoveDataWhileGrounded();
+	void StoreMoveDataWhileGrounded(Agame_PlayerCharacter* playerChar);
 
 private:
 
 	//movement
+	UPROPERTY(Replicated)
 	float forwardInput;
+	UPROPERTY(Replicated)
 	float rightInput;
 	float inputThreshold;
+
+	UPROPERTY(Replicated)
+	float cameraPitch;
+	UPROPERTY(Replicated)
+	float cameraYaw;
+
 	FVector movementDirection;
 	FVector stored_movementDirection;
 	
@@ -73,9 +99,10 @@ private:
 	float timeOfJumpPress;
 	float timeOfLanding;
 	float timeOfJumpBuffer;
-	void ImproveJump();
+	void ImproveJump(Agame_PlayerCharacter* playerChar);
 
 private:
 	//testing
 	void Enable_Framerate_Changer();
+
 };

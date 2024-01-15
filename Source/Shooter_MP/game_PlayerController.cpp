@@ -15,6 +15,7 @@ Agame_PlayerController::Agame_PlayerController()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	maxSpeed = walkingSpeed;
+	//SetReplicates(true);
 }
 
 void Agame_PlayerController::BeginPlay()
@@ -23,16 +24,29 @@ void Agame_PlayerController::BeginPlay()
 	GEngine->bUseFixedFrameRate = false; //in case you changed FPS during testing
 	playerPawn = GetPawn();
 	playerCharacter = (Agame_PlayerCharacter*)playerPawn;
+	if(playerCharacter)
+		playerCharacter->bodyMesh->SetIsReplicated(true);
 	//FSlateApplication::Get().OnFocusChanging().AddUObject(this, &Agame_PlayerController::OnFocusChanged);
+	//SetReplicates(true);
 }
 
 void Agame_PlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	MoveOnInput(playerCharacter, forwardInput, rightInput, DeltaTime);
+	if (HasAuthority())
+	{
+		Multicast_MoveOnInput(playerCharacter, forwardInput, rightInput, DeltaTime);
+		Multicast_RotateCameraOnInput(playerCharacter, cameraPitch, cameraYaw, DeltaTime);
+	}
+	else
+	{
+		Server_MoveOnInput(playerCharacter, forwardInput, rightInput, DeltaTime);
+		Server_RotateCameraOnInput(playerCharacter, cameraPitch, cameraYaw, DeltaTime);
+	}
+	//RotateCameraOnInput(playerCharacter, cameraPitch, cameraYaw, DeltaTime);
 	UpdateStates(playerPawn);
-	StoreMoveDataWhileGrounded();
-	ImproveJump();
+	ImproveJump(playerCharacter);
+	StoreMoveDataWhileGrounded(playerCharacter);
 	
 	//testing
 	Enable_Framerate_Changer();
@@ -41,6 +55,8 @@ void Agame_PlayerController::Tick(float DeltaTime)
 void Agame_PlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
+	InputComponent->SetIsReplicated(true);
+	/*InputComponent->SetIsReplicated(true);*/
 	InputComponent->BindAxis("MoveForward", this, &Agame_PlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &Agame_PlayerController::MoveRight);
 	InputComponent->BindAxis("LookUp", this, &Agame_PlayerController::LookUp);
@@ -77,6 +93,26 @@ void Agame_PlayerController::MoveOnInput(Agame_PlayerCharacter* character, float
 		character->SetActorLocation(newLocation, true);
 	}
 	
+}
+
+void Agame_PlayerController::Multicast_MoveOnInput_Implementation(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime)
+{
+	MoveOnInput(playerChar, fInput, rInput, DeltaTime);
+}
+
+void Agame_PlayerController::Server_MoveOnInput_Implementation(Agame_PlayerCharacter* playerChar, float fInput, float rInput, float DeltaTime)
+{
+	Multicast_MoveOnInput(playerChar, fInput, rInput, DeltaTime);
+}
+
+
+
+void Agame_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(Agame_PlayerController, forwardInput);
+	DOREPLIFETIME(Agame_PlayerController, rightInput);
 }
 
 void Agame_PlayerController::MoveForward(float value)
@@ -145,12 +181,11 @@ void Agame_PlayerController::LookUp(float value)
 {
 	if (value)
 	{
-		UCameraComponent* cam = playerCharacter->camera;
-		float temp = cam->GetRelativeRotation().Pitch + value;
-		if (temp <= 90 && temp >= -90)
-		{
-			cam->AddLocalRotation(FRotator(value, 0, 0)); //move camera. not whole obeject. otherwise wont work
-		}
+		cameraPitch = value;
+	}
+	else
+	{
+		cameraPitch = 0.0f;
 	}
 	
 }
@@ -159,12 +194,42 @@ void Agame_PlayerController::LookRight(float value)
 {
 	if (value)
 	{
-		UCameraComponent* cam = playerCharacter->camera;
-		cam->AddWorldRotation(FRotator(0, value, 0));
-		
-		//move body as well. -90 because of relativity of rotation, its kinda crutch
-		playerCharacter->bodyMesh->SetWorldRotation(FRotator(0, cam->GetRelativeRotation().Yaw - 90, 0));
+		cameraYaw = value;
 	}
+	else
+	{
+		cameraYaw = 0.0f;
+	}
+}
+
+void Agame_PlayerController::RotateCameraOnInput(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime)
+{
+	if (pitch)
+	{
+		float result = playerChar->camera->GetRelativeRotation().Pitch + pitch;
+		if (result <= 90 && result >= -90)
+		{
+			playerChar->camera->AddLocalRotation(FRotator(pitch, 0, 0));	//move camera. not whole obeject. otherwise wont work
+		}
+	}
+
+	if (yaw)
+	{
+		playerChar->camera->AddWorldRotation(FRotator(0, yaw, 0));
+
+		//move body as well. -90 because of relativity of rotation, its kinda crutch
+		playerChar->bodyMesh->SetWorldRotation(FRotator(0, playerChar->camera->GetRelativeRotation().Yaw - 90, 0));
+	}
+}
+
+void Agame_PlayerController::Multicast_RotateCameraOnInput_Implementation(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime)
+{
+	RotateCameraOnInput(playerChar, pitch, yaw, DeltaTime);
+}
+
+void Agame_PlayerController::Server_RotateCameraOnInput_Implementation(Agame_PlayerCharacter* playerChar, float pitch, float yaw, float DeltaTime)
+{
+	Multicast_RotateCameraOnInput(playerChar, pitch, yaw, DeltaTime);
 }
 
 void Agame_PlayerController::UpdateStates(APawn* player)
@@ -185,11 +250,11 @@ void Agame_PlayerController::UpdateStates(APawn* player)
 
 }
 
-void Agame_PlayerController::StoreMoveDataWhileGrounded()
+void Agame_PlayerController::StoreMoveDataWhileGrounded(Agame_PlayerCharacter* playerChar)
 {
-	if (playerCharacter)
+	if (playerChar)
 	{
-		if (playerCharacter->isGrounded)
+		if (playerChar->isGrounded)
 		{
 			stored_movementDirection = movementDirection;
 			stored_currentVelocity = currentVelocity;
@@ -197,11 +262,11 @@ void Agame_PlayerController::StoreMoveDataWhileGrounded()
 	}
 }
 
-void Agame_PlayerController::ImproveJump()
+void Agame_PlayerController::ImproveJump(Agame_PlayerCharacter* playerChar)
 {
-	if (playerCharacter)
+	if (playerChar)
 	{
-		if (playerCharacter->isGrounded)
+		if (playerChar->isGrounded)
 		{
 			timeOfLanding = GetWorld()->GetTimeSeconds();
 		}
@@ -219,39 +284,36 @@ void Agame_PlayerController::ImproveJump()
 
 void Agame_PlayerController::Enable_Framerate_Changer()
 {
-	if (IsInputKeyDown(EKeys::I) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 15)
+	if (IsInputKeyDown(EKeys::I) && IsInputKeyDown(EKeys::LeftControl) && GEngine->GetMaxFPS() != 15)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("FPS CHANGED TO 15"), true, FVector2D(2,2));
-		GEngine->FixedFrameRate = 15.0;
-		GEngine->bUseFixedFrameRate = true;
+		GEngine->SetMaxFPS(15);
+
 	}
 
-	if (IsInputKeyDown(EKeys::O) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 30)
+	if (IsInputKeyDown(EKeys::O) && IsInputKeyDown(EKeys::LeftControl) && GEngine->GetMaxFPS() != 30)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, TEXT("FPS CHANGED TO 30"), true, FVector2D(2, 2));
-		GEngine->FixedFrameRate = 30.0;
-		GEngine->bUseFixedFrameRate = true;
+		GEngine->SetMaxFPS(30.0);
+
 	}
 
-	if (IsInputKeyDown(EKeys::P) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 60)
+	if (IsInputKeyDown(EKeys::K) && IsInputKeyDown(EKeys::LeftControl) && GEngine->GetMaxFPS() != 60)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Orange, TEXT("FPS CHANGED TO 60"), true, FVector2D(2, 2));
-		GEngine->FixedFrameRate = 60.0;
-		GEngine->bUseFixedFrameRate = true;
+		GEngine->SetMaxFPS(60.0);
 	}
 
-	if (IsInputKeyDown(EKeys::K) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 144)
+	if (IsInputKeyDown(EKeys::L) && IsInputKeyDown(EKeys::LeftControl) && GEngine->GetMaxFPS() != 144)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("FPS CHANGED TO 144"), true, FVector2D(2, 2));
-		GEngine->FixedFrameRate = 144.0;
-		GEngine->bUseFixedFrameRate = true;
+		GEngine->SetMaxFPS(144.0);
 	}
 
-	if (IsInputKeyDown(EKeys::L) && IsInputKeyDown(EKeys::LeftControl) && GEngine->FixedFrameRate != 999)
+	if (IsInputKeyDown(EKeys::M) && IsInputKeyDown(EKeys::LeftControl) && GEngine->GetMaxFPS() != 999)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("FPS UNCAPPED"), true, FVector2D(2, 2));
-		GEngine->FixedFrameRate = 999.0;
-		GEngine->bUseFixedFrameRate = false;
+		GEngine->SetMaxFPS(999.0);
 	}
 }
 
