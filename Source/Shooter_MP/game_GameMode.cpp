@@ -1,18 +1,26 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "game_GameMode.h"
 
 Agame_GameMode::Agame_GameMode()
-	:maxPlayers(4)
+	:maxPlayers(4),
+	currentPlayers(0)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PlayerControllerClass = Agame_PlayerController::StaticClass();
+	// Set the ticking group to PrePhysics so that this happens before all the other ticks
+	PrimaryActorTick.TickGroup = TG_PrePhysics;
+
+	game_State = GetGameState<Agame_GameState>();
 }
+
+
 
 void Agame_GameMode::BeginPlay()
 {
+
 }
 
 void Agame_GameMode::Tick(float DeltaTime)
@@ -64,15 +72,5 @@ void Agame_GameMode::SetupMultiplayer(APlayerController* NewPlayer)
 
 void Agame_GameMode::SetupSingleplayer(APlayerController* NewPlayer)
 {
-
+	//TO IMPLEMENT
 }
-
-//void Agame_GameMode::FindPlayerCharacters()
-//{
-//	TArray<AActor*> players;
-//	UGameplayStatics::GetAllActorsOfClass(GetWorld(), Agame_PlayerCharacter::StaticClass(), players);
-//	for (AActor* player : players)
-//	{
-//		playerCharacters.Add((Agame_PlayerCharacter*)player);
-//	}
-//}

@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "utility_General.h"
-
-
-
 
 utility_General::utility_General()
 {

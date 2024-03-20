@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -11,7 +11,10 @@
 class SHOOTER_MP_API testing_General
 {
 public:
+	/* Constructs testing_general class*/
 	testing_General();
+
+	/* Frees all the dynamically allocated memory */
 	~testing_General();
 
 	

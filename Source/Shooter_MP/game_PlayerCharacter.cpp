@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "game_PlayerCharacter.h"
 
-// Sets default values
 Agame_PlayerCharacter::Agame_PlayerCharacter()
 	:isGrounded(false),
 	isSprinting(false),
@@ -14,6 +13,7 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	//components
 	capsuleCollider = FindComponentByClass<UCapsuleComponent>();
@@ -26,11 +26,12 @@ Agame_PlayerCharacter::Agame_PlayerCharacter()
 		capsuleOverlapDetector = CreateDefaultSubobject<UCapsuleComponent>(TEXT("OverlapDetector"));
 		capsuleOverlapDetector->SetupAttachment(capsuleCollider);
 		capsuleOverlapDetector->SetWorldLocation(FVector::ZeroVector);
-		bodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+		//bodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+		bodyMesh = FindComponentByClass<USkeletalMeshComponent>();
 		bodyMesh->SetupAttachment(capsuleCollider);
+		gunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("gunMesh"));
+		gunMesh->SetupAttachment(camera);
 	}
-	/*SetReplicates(true);
-	SetReplicateMovement(true);*/
 	NetUpdateFrequency = 5000.0f;
 }
 
@@ -39,8 +40,8 @@ void Agame_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+
 	capsuleCollider->OnComponentHit.AddDynamic(this, &Agame_PlayerCharacter::OnHit);
-	//capsuleOverlapDetector->OnComponentBeginOverlap.AddDynamic(this, &Agame_PlayerCharacter::Detector_OnOverlapBegin);
 	capsuleOverlapDetector->OnComponentEndOverlap.AddDynamic(this, &Agame_PlayerCharacter::Detector_OnOverlapEnd);
 
 }
@@ -56,6 +57,15 @@ void Agame_PlayerCharacter::Tick(float DeltaTime)
 void Agame_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void Agame_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(Agame_PlayerCharacter, camera);
+	DOREPLIFETIME(Agame_PlayerCharacter, bodyMesh);
+	DOREPLIFETIME(Agame_PlayerCharacter, gunMesh);
 }
 
 void Agame_PlayerCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -83,10 +93,6 @@ void Agame_PlayerCharacter::Detector_OnOverlapBegin(UPrimitiveComponent* Overlap
 	//inactive right now - look OnComponentBeginOverlap.AddDynamic
 	isHittingStuff = true;
 	
-	//debugging
-	/*GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, TEXT("DETECTOR OVERLAPPING"), true, FVector2D(1.5, 1.5));
-	FString VectorString = FString::Printf(TEXT("OVERLAP - X: %f, Y: %f, Z: %f"), hitNormal.X, hitNormal.Y, hitNormal.Z);
-	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, VectorString, true, FVector2D(1.5, 1.5));*/
 }
 
 void Agame_PlayerCharacter::Detector_OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
